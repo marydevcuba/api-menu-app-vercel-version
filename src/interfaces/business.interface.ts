@@ -6,5 +6,5 @@ export interface Business {
   web?: string;
   description?: string;
   address: string;
-  categoriesIds: [];
+  categoriesIds: string[];
 }
