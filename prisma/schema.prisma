@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  name                String
+  email               String        @unique
+  password            String
+  favoriteBusinessIds String[]
+  favoriteOffersIds   String[]
+  is_verified         Boolean       @default(false)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  imageUrl            ImageUrl?
+  role                Role          @default(USER)
+  review              Review[]
+  star                Stars[]
+  propietario         Propietario[]
+}
+
+model Propietario {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+model Business {
+  id               String             @id @default(uuid())
+  name             String             @unique
+  email            String?
+  phone            Int?
+  web              String?
+  description      String?
+  address          String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  businessImage    ImageUrl[]
+  offer            Offer[]
+  review           Review[]
+  stars            Stars[]
+  propietario      Propietario[]
+  businessCategory BusinessCategory[]
+}
+
+model Offer {
+  id            String          @id @default(uuid())
+  name          String          @unique
+  price         Decimal
+  code          String?         @unique
+  description   String?
+  ingredients   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  offerImage    ImageUrl[]
+  businessId    String
+  business      Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  review        Review[]
+  stars         Stars[]
+  offerCategory OfferCategory[]
+}
+
+model BusinessCategory {
+  id         String   @id @default(uuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+}
+
+model OfferCategory {
+  id         String   @id @default(uuid())
+  offerId    String
+  offer      Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+}
+
+model Category {
+  id               String             @id @default(uuid())
+  name             String             @unique
+  description      String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  imageUrl         ImageUrl?
+  businessCategory BusinessCategory[]
+  offerCategory    OfferCategory[]
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  description String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  star        Stars?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId  String?
+  business    Business? @relation(fields: [businessId], references: [id])
+  offerId     String?
+  offer       Offer?    @relation(fields: [offerId], references: [id])
+}
+
+model Stars {
+  id         String    @id @default(uuid())
+  valoration Int
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id])
+  offerId    String?
+  offer      Offer?    @relation(fields: [offerId], references: [id])
+  reviewId   String    @unique
+  review     Review    @relation(fields: [reviewId], references: [id])
+}
+
+model ImageUrl {
+  id         String    @id @default(uuid())
+  imageUrl   String
+  public_id  String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  userId     String?   @unique
+  user       User?     @relation(fields: [userId], references: [id])
+  offerId    String?
+  offer      Offer?    @relation(fields: [offerId], references: [id])
+  categoryId String?   @unique
+  category   Category? @relation(fields: [categoryId], references: [id])
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id])
+}
+
+model VerificationCode {
+  id     String @id @default(uuid())
+  code   String
+  token  String
+  userId String
+}
+
+model BlackListToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  WORKER
+  ADMIN
+}
